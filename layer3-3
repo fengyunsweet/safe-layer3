@@ -1,0 +1,29 @@
+var httpRequest = new XMLHttpRequest();//第一步：创建需要的对象
+var query = {
+    "query": "query addressInfo($address: String!) {\r\n  addressInfo(address: $address) {\r\n    recentParticipation(input: { first: 10000 }) {\r\n      list {\r\n        campaign {\r\n          numberID\r\n      }\r\n      }\r\n    }\r\n  }\r\n}",
+    "variables": {
+        "address": "0xF55c02b021f91752521C0cB74303565f25BAcCb1"
+    }
+}
+httpRequest.open('POST', 'https://graphigo.prd.galaxy.eco/query', true); //第二步：打开连接
+httpRequest.setRequestHeader("Content-type","application/json");//设置请求头
+httpRequest.send(JSON.stringify(query));//发送请求
+
+httpRequest.onreadystatechange = function () {//请求后的回调接口，可将请求成功后要执行的程序写在其中
+    if (httpRequest.readyState == 4 && httpRequest.status == 200) {//验证请求是否发送成功
+        var res = httpRequest.responseText;//获取到服务端返回的数据
+        var data = JSON.parse(res).data
+        var ans
+        if(data == null || data.addressInfo == null || data.addressInfo.recentParticipation == null || data.addressInfo.recentParticipation.list == null || data.addressInfo.recentParticipation.list.length == 0) {
+            ans = 0
+        } else {
+            let parts = data.addressInfo.recentParticipation.list
+            let s = new Set()
+            for (const part of parts) {
+                s.add(part.campaign.numberID)
+            }
+            ans = s.size
+        }
+        alert("参加活动数: " + ans.toString());
+    }
+};
